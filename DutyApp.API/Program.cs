@@ -52,12 +52,9 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// 5. Настройка HTTP-конвейера
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+// 5. Настройка HTTP-конвейера (Swagger включен всегда)
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseAuthentication(); // Проверка токена
 app.UseAuthorization();  // Проверка ролей
