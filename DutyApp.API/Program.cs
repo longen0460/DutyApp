@@ -7,10 +7,20 @@ using Microsoft.IdentityModel.Tokens;
 var builder = WebApplication.CreateBuilder(args);
 
 // 1. Подключение к базе данных (PostgreSQL)
-// Npgsql (начиная с версии 6.0) сам умеет понимать формат postgres:// от Render
-// Временно жестко прописываем строку подключения
-var conn = "postgres://dutyapp_user:gn6UT7tot4BtzMk03I0smSVNzy0CSxHI@dpg-db9su7ijnfac73dh9kdg-a/dutyapp";
-
+// Правильно парсим строку от Render в формат Npgsql
+var rawConn = Environment.GetEnvironmentVariable("DATABASE_URL")
+           ?? builder.Configuration.GetConnectionString("Default");
+string conn;
+if (rawConn != null && rawConn.StartsWith("postgres://"))
+{
+    var uri = new Uri(rawConn);
+    var userInfo = uri.UserInfo.Split(':');
+    conn = $"Host={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};Username={userInfo[0]};Password={userInfo[1]};SSL Mode=Require;Trust Server Certificate=true";
+}
+else
+{
+    conn = rawConn!;
+}
 builder.Services.AddDbContext<AppDbContext>(o => o.UseNpgsql(conn));
 
 // 2. Добавляем контроллеры и Swagger
