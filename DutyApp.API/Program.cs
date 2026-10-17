@@ -7,8 +7,19 @@ using Microsoft.IdentityModel.Tokens;
 var builder = WebApplication.CreateBuilder(args);
 
 // 1. Подключение к базе данных (PostgreSQL)
-var conn = Environment.GetEnvironmentVariable("DATABASE_URL")
-           ?? builder.Configuration.GetConnectionString("Default");
+var conn = Environment.GetEnvironmentVariable("DATABASE_URL");
+if (!string.IsNullOrEmpty(conn) && conn.StartsWith("postgres://"))
+{
+    // Конвертируем URL от Render в формат Npgsql
+    var uri = new Uri(conn);
+    var userInfo = uri.UserInfo.Split(':');
+    conn = $"Host={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};Username={userInfo[0]};Password={userInfo[1]};SSL Mode=Require;Trust Server Certificate=true";
+}
+else if (string.IsNullOrEmpty(conn))
+{
+    conn = builder.Configuration.GetConnectionString("Default");
+}
+
 builder.Services.AddDbContext<AppDbContext>(o => o.UseNpgsql(conn));
 
 // 2. Добавляем контроллеры и Swagger
