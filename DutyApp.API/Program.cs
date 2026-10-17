@@ -38,12 +38,19 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-// // 4. Автоматически создаем таблицы в базе при запуске
-// using (var scope = app.Services.CreateScope())
-// {
-//     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-//     db.Database.EnsureCreated();
-// }
+// 4. Автоматически создаем таблицы в базе при запуске
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    try
+    {
+        db.Database.EnsureCreated();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Ошибка подключения к БД: {ex.Message}");
+    }
+}
 
 // 5. Настройка HTTP-конвейера
 if (app.Environment.IsDevelopment())
