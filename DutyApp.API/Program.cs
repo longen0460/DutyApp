@@ -8,8 +8,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 // 1. Подключение к базе данных (PostgreSQL)
 // Npgsql (начиная с версии 6.0) сам умеет понимать формат postgres:// от Render
-var conn = Environment.GetEnvironmentVariable("DATABASE_URL")
-           ?? builder.Configuration.GetConnectionString("Default");
+// Временно жестко прописываем строку подключения
+var conn = "postgres://dutyapp_user:gn6UT7tot4BtzMk03I0smSVNzy0CSxHI@dpg-db9su7ijnfac73dh9kdg-a/dutyapp";
+
 builder.Services.AddDbContext<AppDbContext>(o => o.UseNpgsql(conn));
 
 // 2. Добавляем контроллеры и Swagger
