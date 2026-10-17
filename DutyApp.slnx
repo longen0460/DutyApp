@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="DutyApp.API/DutyApp.API.csproj" />
+  <Project Path="DutyApp.Mobile/DutyApp.Mobile.csproj" Id="07550c9b-63fb-4bb5-8763-495ae712a591" />
+</Solution>

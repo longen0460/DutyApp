@@ -1,0 +1,6 @@
+@DutyApp.API_HostAddress = http://localhost:5012
+
+GET {{DutyApp.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
