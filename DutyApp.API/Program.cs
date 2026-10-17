@@ -39,17 +39,29 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-// 4. Автоматически создаем таблицы в базе при запуске
+// 4. Автоматически создаем таблицы и пользователей при запуске
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     try
     {
         db.Database.EnsureCreated();
+
+        // Если пользователей нет — создаем их
+        if (!db.Users.Any())
+        {
+            db.Users.AddRange(
+                new DutyApp.API.Models.AppUser { Login = "admin", PasswordHash = BCrypt.Net.BCrypt.HashPassword("admin123"), Role = "Admin" },
+                new DutyApp.API.Models.AppUser { Login = "starosta", PasswordHash = BCrypt.Net.BCrypt.HashPassword("starosta123"), Role = "Starosta" },
+                new DutyApp.API.Models.AppUser { Login = "zam", PasswordHash = BCrypt.Net.BCrypt.HashPassword("zam123"), Role = "Zam" }
+            );
+            db.SaveChanges();
+            Console.WriteLine("Пользователи успешно созданы!");
+        }
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"Ошибка подключения к БД: {ex.Message}");
+        Console.WriteLine($"Ошибка при инициализации БД: {ex.Message}");
     }
 }
 
