@@ -6,8 +6,9 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Подключение к базе данных (Supabase)
+// 1. Подключение к базе данных (Render)
 var rawConn = "postgresql://dutyapp_user:wtV6jo2uABbY5vPOPcJNGmYQTj4W8iuL@dpg-dbaghm49v7es738ef0vg-a/dutyapp_aj4g";
+// ВАЖНО: замени ТВОЙ_ПАРОЛЬ и dpg-xxxx-a на свои данные от Render!
 
 string conn;
 if (rawConn.StartsWith("postgresql://") || rawConn.StartsWith("postgres://"))
@@ -16,7 +17,6 @@ if (rawConn.StartsWith("postgresql://") || rawConn.StartsWith("postgres://"))
     var userInfo = uri.UserInfo.Split(':');
     int port = uri.Port > 0 ? uri.Port : 5432;
 
-    // Извлекаем параметры из URL (например, sslmode=require)
     string sslMode = "Require";
     if (uri.Query.Contains("sslmode=require")) sslMode = "Require";
 
@@ -55,7 +55,7 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-// 4. Автоматически создаем таблицы и пользователей при запуске
+// 4. Автоматически создаем таблицы, колонку IsAvailable и пользователей при запуске
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -63,6 +63,18 @@ using (var scope = app.Services.CreateScope())
     {
         db.Database.EnsureCreated();
 
+        // Автоматически добавляем колонку IsAvailable, если её нет
+        try
+        {
+            db.Database.ExecuteSqlRaw(@"ALTER TABLE ""Students"" ADD COLUMN IF NOT EXISTS ""IsAvailable"" boolean NOT NULL DEFAULT true;");
+            Console.WriteLine("Колонка IsAvailable проверена/создана.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка при создании колонки IsAvailable: {ex.Message}");
+        }
+
+        // Создаем пользователей, если их нет
         if (!db.Users.Any())
         {
             db.Users.AddRange(
