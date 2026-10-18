@@ -25,53 +25,104 @@ public partial class BalancePage : ContentPage
     {
         LoadingIndicator.IsRunning = true;
         LoadingIndicator.IsVisible = true;
-        ListView.ItemsSource = await _api.GetBalanceAsync();
+
+        var balance = await _api.GetBalanceAsync();
+        ListView.ItemsSource = balance;
+
+        var todayDuties = await _api.GetTodayDutiesAsync();
+        var students = await _api.GetStudentsAsync();
+
+        if (todayDuties.Count == 0)
+        {
+            TodayLabel.Text = "Не назначены";
+        }
+        else
+        {
+            var names = todayDuties
+                .SelectMany(d => new[] { d.StudentId1, d.StudentId2 })
+                .Where(id => id.HasValue)
+                .Select(id => students.FirstOrDefault(s => s.Id == id)?.FullName ?? "?")
+                .ToList();
+            TodayLabel.Text = string.Join(", ", names);
+        }
+
         LoadingIndicator.IsRunning = false;
         LoadingIndicator.IsVisible = false;
     }
 
     private async void OnAssignClicked(object sender, EventArgs e)
     {
-        bool confirm = await DisplayAlert("Дежурные", "Назначить двоих дежурных на сегодня?", "Да", "Нет");
-        if (!confirm) return;
-
         LoadingIndicator.IsRunning = true;
         LoadingIndicator.IsVisible = true;
-
-        var result = await _api.AutoAssignAsync(DateTime.Today, DateTime.Today, 2, false);
-
+        var ok = await _api.AssignTodayAsync();
         LoadingIndicator.IsRunning = false;
         LoadingIndicator.IsVisible = false;
 
-        if (result != null && result.Count > 0)
-        {
-            await DisplayAlert("Успех", "Дежурные на сегодня назначены!", "ОК");
+        if (ok)
             await LoadData();
-        }
         else
-        {
-            await DisplayAlert("Ошибка", "Не удалось назначить. Возможно, нет студентов.", "ОК");
-        }
+            await DisplayAlert("Ошибка", "Не удалось назначить (нужно минимум 2 доступных студента).", "ОК");
     }
 
-    private async void OnStudentTapped(object sender, TappedEventArgs e)
+    private async void OnToggleAvailability(object sender, EventArgs e)
     {
-        var border = (Border)sender;
-        var item = (BalanceItem)border.BindingContext;
+        var btn = (Button)sender;
+        var id = (int)btn.CommandParameter;
+        await _api.ToggleAvailabilityAsync(id);
+        await LoadData();
+    }
 
-        LoadingIndicator.IsRunning = true;
-        LoadingIndicator.IsVisible = true;
-        var history = await _api.GetStudentHistoryAsync(item.Id);
-        LoadingIndicator.IsRunning = false;
-        LoadingIndicator.IsVisible = false;
+    private async void OnHistoryClicked(object sender, EventArgs e)
+    {
+        var btn = (Button)sender;
+        var id = (int)btn.CommandParameter;
+        var students = await _api.GetStudentsAsync();
+        var student = students.FirstOrDefault(s => s.Id == id);
+        if (student == null) return;
+
+        var history = await _api.GetStudentHistoryAsync(id);
 
         if (history.Count == 0)
         {
-            await DisplayAlert(item.FullName, "Ещё не дежурил", "ОК");
+            bool add = await DisplayAlert(student.FullName, "Ещё не дежурил. Добавить дежурство?", "Да", "Нет");
+            if (add)
+            {
+                string dateStr = await DisplayPromptAsync("Дата дежурства", "Введите дату (дд.мм.гггг):", initialValue: DateTime.Today.ToString("dd.MM.yyyy"));
+                if (DateTime.TryParseExact(dateStr, "dd.MM.yyyy", null, System.Globalization.DateTimeStyles.None, out DateTime dt))
+                {
+                    var ok = await _api.AddManualDutyAsync(id, dt);
+                    if (!ok) await DisplayAlert("Ошибка", "Не удалось добавить (возможно, занято).", "ОК");
+                }
+            }
             return;
         }
 
-        var dates = string.Join("\n", history.Select(h => h.Date.ToString("dd.MM.yyyy")));
-        await DisplayAlert(item.FullName, $"Дежурства:\n{dates}", "ОК");
+        string[] options = new string[history.Count + 1];
+        options[0] = "➕ Добавить дежурство";
+        for (int i = 0; i < history.Count; i++)
+            options[i + 1] = "❌ Удалить: " + history[i].Date.ToString("dd.MM.yyyy");
+
+        string action = await DisplayActionSheet(student.FullName, "Отмена", null, options);
+
+        if (string.IsNullOrEmpty(action) || action == "Отмена") return;
+
+        if (action.StartsWith("➕ Добавить"))
+        {
+            string dateStr = await DisplayPromptAsync("Дата", "Введите дату (дд.мм.гггг):", initialValue: DateTime.Today.ToString("dd.MM.yyyy"));
+            if (DateTime.TryParseExact(dateStr, "dd.MM.yyyy", null, System.Globalization.DateTimeStyles.None, out DateTime dt))
+            {
+                var ok = await _api.AddManualDutyAsync(id, dt);
+                if (!ok) await DisplayAlert("Ошибка", "Не удалось добавить.", "ОК");
+            }
+        }
+        else if (action.StartsWith("❌"))
+        {
+            int idx = Array.IndexOf(options, action) - 1;
+            var duty = history[idx];
+            var ok = await _api.DeleteDutyFromHistoryAsync(id, duty.Id);
+            if (!ok) await DisplayAlert("Ошибка", "Не удалось удалить.", "ОК");
+        }
+
+        await LoadData();
     }
 }

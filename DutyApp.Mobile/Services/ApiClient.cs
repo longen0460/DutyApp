@@ -41,6 +41,7 @@ public class ApiClient
         catch { return null; }
     }
 
+    // --- ПОЛЬЗОВАТЕЛИ ---
     public async Task<List<AppUserDto>> GetUsersAsync()
     {
         ApplyAuth();
@@ -60,6 +61,7 @@ public class ApiClient
         return (await _http.DeleteAsync($"api/auth/users/{id}")).IsSuccessStatusCode;
     }
 
+    // --- СТУДЕНТЫ ---
     public async Task<List<Student>> GetStudentsAsync()
     {
         ApplyAuth();
@@ -69,7 +71,7 @@ public class ApiClient
     public async Task<Student?> AddStudentAsync(string name)
     {
         ApplyAuth();
-        var res = await _http.PostAsJsonAsync("api/students", new { fullName = name, isActive = true });
+        var res = await _http.PostAsJsonAsync("api/students", new { fullName = name, isActive = true, isAvailable = true });
         if (!res.IsSuccessStatusCode) return null;
         return await res.Content.ReadFromJsonAsync<Student>();
     }
@@ -80,10 +82,31 @@ public class ApiClient
         return (await _http.DeleteAsync($"api/students/{id}")).IsSuccessStatusCode;
     }
 
+    public async Task<bool> ToggleAvailabilityAsync(int studentId)
+    {
+        ApplyAuth();
+        var res = await _http.PatchAsync($"api/students/{studentId}/availability", null);
+        return res.IsSuccessStatusCode;
+    }
+
+    // --- ДЕЖУРСТВА ---
     public async Task<List<DutyEntry>> GetDutiesAsync(int year, int month)
     {
         ApplyAuth();
         return await _http.GetFromJsonAsync<List<DutyEntry>>($"api/duties?year={year}&month={month}") ?? new();
+    }
+
+    public async Task<List<DutyEntry>> GetTodayDutiesAsync()
+    {
+        ApplyAuth();
+        return await _http.GetFromJsonAsync<List<DutyEntry>>("api/duties/today") ?? new();
+    }
+
+    public async Task<bool> AssignTodayAsync()
+    {
+        ApplyAuth();
+        var res = await _http.PostAsync("api/duties/assign-today", null);
+        return res.IsSuccessStatusCode;
     }
 
     public async Task<List<DutyEntry>?> AutoAssignAsync(DateTime from, DateTime to, int pairSize, bool skipWeekends)
@@ -115,6 +138,7 @@ public class ApiClient
         }
     }
 
+    // --- БАЛАНС / ИСТОРИЯ ---
     public async Task<List<BalanceItem>> GetBalanceAsync()
     {
         ApplyAuth();
@@ -131,6 +155,24 @@ public class ApiClient
     {
         ApplyAuth();
         return await _http.GetFromJsonAsync<List<DutyEntry>>($"api/duties/history/{studentId}") ?? new();
+    }
+
+    public async Task<bool> AddManualDutyAsync(int studentId, DateTime date)
+    {
+        ApplyAuth();
+        var res = await _http.PostAsJsonAsync("api/duties/manual", new
+        {
+            studentId,
+            date = date.ToString("yyyy-MM-dd")
+        });
+        return res.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> DeleteDutyFromHistoryAsync(int studentId, int dutyId)
+    {
+        ApplyAuth();
+        var res = await _http.DeleteAsync($"api/duties/history/{studentId}/{dutyId}");
+        return res.IsSuccessStatusCode;
     }
 
     private record LoginResponse(string token, string role, string login);

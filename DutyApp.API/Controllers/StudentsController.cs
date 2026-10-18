@@ -27,10 +27,12 @@ public class StudentsController : ControllerBase
         Ok(await _db.Students.OrderBy(s => s.FullName).ToListAsync());
 
     [HttpPost]
-    [Authorize(Roles = "Admin")] // Только админ
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Add([FromBody] Student s)
     {
         s.Id = 0;
+        s.IsActive = true;
+        s.IsAvailable = true;
         _db.Students.Add(s);
         Log("add_student", $"Добавлен: {s.FullName}");
         await _db.SaveChangesAsync();
@@ -45,6 +47,7 @@ public class StudentsController : ControllerBase
         if (db == null) return NotFound();
         db.FullName = s.FullName;
         db.IsActive = s.IsActive;
+        db.IsAvailable = s.IsAvailable;
         Log("update_student", $"Изменён id={id}: {s.FullName}");
         await _db.SaveChangesAsync();
         return Ok(db);
@@ -60,5 +63,16 @@ public class StudentsController : ControllerBase
         Log("delete_student", $"Удалён: {s.FullName}");
         await _db.SaveChangesAsync();
         return NoContent();
+    }
+
+    [HttpPatch("{id}/availability")]
+    public async Task<IActionResult> ToggleAvailability(int id)
+    {
+        var s = await _db.Students.FindAsync(id);
+        if (s == null) return NotFound();
+        s.IsAvailable = !s.IsAvailable;
+        Log("toggle_availability", $"{s.FullName}: {(s.IsAvailable ? "доступен" : "недоступен")}");
+        await _db.SaveChangesAsync();
+        return Ok(s);
     }
 }

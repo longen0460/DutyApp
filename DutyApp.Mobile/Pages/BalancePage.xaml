@@ -5,30 +5,38 @@
              BackgroundColor="{AppThemeBinding Light={StaticResource BackgroundDark}, Dark={StaticResource BackgroundDark}}"
              Title="Дежурства">
 
-    <Grid RowDefinitions="Auto,*,Auto" Padding="15" RowSpacing="10">
+    <Grid RowDefinitions="Auto,Auto,*,Auto" Padding="15" RowSpacing="10">
 
         <Button Grid.Row="0" Text="🎲 Выбрать дежурных на сегодня" 
                 Clicked="OnAssignClicked" BackgroundColor="#28a745" HeightRequest="60" FontSize="16"/>
 
-        <CollectionView Grid.Row="1" x:Name="ListView">
+        <Border Grid.Row="1" StrokeShape="RoundRectangle 12" BackgroundColor="{StaticResource SurfaceDark}" Padding="10">
+            <VerticalStackLayout>
+                <Label Text="Сегодня дежурят:" FontAttributes="Bold" TextColor="{StaticResource TextLight}"/>
+                <Label x:Name="TodayLabel" TextColor="{StaticResource TextMuted}" FontSize="14"/>
+            </VerticalStackLayout>
+        </Border>
+
+        <CollectionView Grid.Row="2" x:Name="ListView">
             <CollectionView.ItemTemplate>
                 <DataTemplate>
                     <Border StrokeShape="RoundRectangle 12" Margin="0,5" Padding="15">
-                        <Border.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnStudentTapped"/>
-                        </Border.GestureRecognizers>
-                        <Grid ColumnDefinitions="*,Auto">
-                            <Label Text="{Binding FullName}" FontSize="16" VerticalOptions="Center" 
+                        <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="10">
+                            <Button Grid.Column="0" Text="👁" BackgroundColor="Transparent" WidthRequest="40"
+                                    Clicked="OnToggleAvailability" CommandParameter="{Binding Id}" FontSize="20"/>
+                            <Label Grid.Column="1" Text="{Binding FullName}" FontSize="16" VerticalOptions="Center" 
                                    TextColor="{StaticResource TextLight}"/>
-                            <Border Grid.Column="1" BackgroundColor="{StaticResource Primary}" StrokeShape="RoundRectangle 15" Padding="12,5">
+                            <Border Grid.Column="2" BackgroundColor="{StaticResource Primary}" StrokeShape="RoundRectangle 15" Padding="12,5">
                                 <Label Text="{Binding Count}" TextColor="White" FontAttributes="Bold"/>
                             </Border>
+                            <Button Grid.Column="3" Text="📜" BackgroundColor="Transparent" WidthRequest="40"
+                                    Clicked="OnHistoryClicked" CommandParameter="{Binding Id}" FontSize="20"/>
                         </Grid>
                     </Border>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
 
-        <ActivityIndicator Grid.Row="2" x:Name="LoadingIndicator" IsRunning="False" IsVisible="False" Color="{StaticResource Primary}"/>
+        <ActivityIndicator Grid.Row="3" x:Name="LoadingIndicator" IsRunning="False" IsVisible="False" Color="{StaticResource Primary}"/>
     </Grid>
 </ContentPage>
