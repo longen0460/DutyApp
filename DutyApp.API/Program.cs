@@ -7,8 +7,26 @@ using Microsoft.IdentityModel.Tokens;
 var builder = WebApplication.CreateBuilder(args);
 
 // 1. Подключение к базе данных (Supabase)
-var conn = "postgresql://postgres.ohtjspcqgdjlpsukcpvl:7aY-HaX-CMn-kNh@aws-0-eu-west-1.pooler.supabase.com:5432/postgres";
+var rawConn = "postgresql://postgres.longen0460:ТВОЙ_ПАРОЛЬ@aws-0-eu-west-1.pooler.supabase.com:6543/postgres";
+// ВАЖНО: замени ТВОЙ_ПАРОЛЬ на пароль от Supabase!
 
+string conn;
+if (rawConn.StartsWith("postgresql://") || rawConn.StartsWith("postgres://"))
+{
+    var uri = new Uri(rawConn);
+    var userInfo = uri.UserInfo.Split(':');
+    int port = uri.Port > 0 ? uri.Port : 5432;
+
+    // Извлекаем параметры из URL (например, sslmode=require)
+    string sslMode = "Require";
+    if (uri.Query.Contains("sslmode=require")) sslMode = "Require";
+
+    conn = $"Host={uri.Host};Port={port};Database={uri.AbsolutePath.TrimStart('/')};Username={userInfo[0]};Password={userInfo[1]};SSL Mode={sslMode};Trust Server Certificate=true";
+}
+else
+{
+    conn = rawConn;
+}
 builder.Services.AddDbContext<AppDbContext>(o => o.UseNpgsql(conn));
 
 // 2. Добавляем контроллеры и Swagger
@@ -46,7 +64,6 @@ using (var scope = app.Services.CreateScope())
     {
         db.Database.EnsureCreated();
 
-        // Если пользователей нет — создаем их
         if (!db.Users.Any())
         {
             db.Users.AddRange(
@@ -64,12 +81,12 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// 5. Настройка HTTP-конвейера (Swagger включен всегда)
+// 5. Настройка HTTP-конвейера
 app.UseSwagger();
 app.UseSwaggerUI();
 
-app.UseAuthentication(); // Проверка токена
-app.UseAuthorization();  // Проверка ролей
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 
