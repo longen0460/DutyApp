@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="DutyApp.Mobile.Pages.HistoryPage"
+             BackgroundColor="{AppThemeBinding Light={StaticResource BackgroundDark}, Dark={StaticResource BackgroundDark}}"
+             Title="История">
+    <Grid RowDefinitions="*,Auto" Padding="15">
+        <CollectionView Grid.Row="0" x:Name="ListView">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Border StrokeShape="RoundRectangle 12" Margin="0,5" Padding="15">
+                        <VerticalStackLayout Spacing="5">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <Label Text="{Binding ActorLogin}" FontAttributes="Bold" TextColor="{StaticResource Primary}"/>
+                                <Label Grid.Column="1" Text="{Binding Timestamp, StringFormat='{0:dd.MM HH:mm}'}" TextColor="{StaticResource TextMuted}" FontSize="12"/>
+                            </Grid>
+                            <Label Text="{Binding Details}" TextColor="{StaticResource TextLight}"/>
+                        </VerticalStackLayout>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <ActivityIndicator Grid.Row="1" x:Name="LoadingIndicator" IsRunning="False" IsVisible="False" Color="{StaticResource Primary}"/>
+    </Grid>
+</ContentPage>

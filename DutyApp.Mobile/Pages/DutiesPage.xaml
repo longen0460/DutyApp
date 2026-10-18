@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="DutyApp.Mobile.Pages.DutiesPage"
+             BackgroundColor="{AppThemeBinding Light={StaticResource BackgroundDark}, Dark={StaticResource BackgroundDark}}"
+             Title="Календарь">
+    <Grid RowDefinitions="Auto,Auto,*,Auto" Padding="15" RowSpacing="15">
+
+        <Border Grid.Row="0" StrokeShape="RoundRectangle 12">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <Button Grid.Column="0" Text="◀" Clicked="OnPrevMonth" WidthRequest="50" BackgroundColor="Transparent" TextColor="{StaticResource Primary}"/>
+                <Label Grid.Column="1" x:Name="MonthLabel" VerticalOptions="Center" HorizontalOptions="Center" 
+                       FontSize="18" FontAttributes="Bold" TextColor="{StaticResource TextLight}"/>
+                <Button Grid.Column="2" Text="▶" Clicked="OnNextMonth" WidthRequest="50" BackgroundColor="Transparent" TextColor="{StaticResource Primary}"/>
+            </Grid>
+        </Border>
+
+        <Button Grid.Row="1" Text="🎲 Честное распределение" Clicked="OnAutoAssignClicked" BackgroundColor="#28a745"/>
+
+        <CollectionView Grid.Row="2" x:Name="ListView">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Border StrokeShape="RoundRectangle 12" Margin="0,5" Padding="15">
+                        <Grid ColumnDefinitions="Auto,*">
+                            <Border BackgroundColor="{StaticResource Primary}" StrokeShape="RoundRectangle 8" Padding="10,5" WidthRequest="80">
+                                <Label Text="{Binding Date, StringFormat='{0:dd.MM}'}" TextColor="White" HorizontalOptions="Center" FontAttributes="Bold"/>
+                            </Border>
+                            <Label Grid.Column="1" Text="{Binding DisplayNames}" VerticalOptions="Center" Margin="15,0,0,0" 
+                                   TextColor="{StaticResource TextLight}"/>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <ActivityIndicator Grid.Row="3" x:Name="LoadingIndicator" IsRunning="False" IsVisible="False" Color="{StaticResource Primary}"/>
+    </Grid>
+</ContentPage>
