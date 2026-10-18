@@ -6,8 +6,10 @@
              Title="Список группы">
 
     <ContentPage.ToolbarItems>
-        <ToolbarItem Text="Обновить" Clicked="OnRefresh" Priority="0"/>
-        <ToolbarItem Text="Меню" Clicked="OnMenu" Priority="1"/>
+        <!-- Иконка темы -->
+        <ToolbarItem x:Name="ThemeIcon" Text="🌙" Clicked="OnThemeToggle" Priority="0"/>
+        <ToolbarItem Text="Обновить" Clicked="OnRefresh" Priority="1"/>
+        <ToolbarItem Text="Меню" Clicked="OnMenu" Priority="2"/>
     </ContentPage.ToolbarItems>
 
     <Grid RowDefinitions="Auto,*,Auto" Padding="15" RowSpacing="10">

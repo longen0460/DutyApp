@@ -34,19 +34,25 @@ public partial class DutiesPage : ContentPage
         LoadingIndicator.IsRunning = true;
         LoadingIndicator.IsVisible = true;
 
-        var duties = await _api.GetDutiesAsync(_currentDate.Year, _currentDate.Month);
-        var students = await _api.GetStudentsAsync();
-
-        // Склеиваем данные для отображения имен вместо ID
-        var displayList = duties.Select(d => new
+        try
         {
-            d.Date,
-            DisplayNames = students.Where(s => s.Id == d.StudentId1 || s.Id == d.StudentId2)
-                                   .Select(s => s.FullName)
-                                   .Aggregate((a, b) => $"{a}, {b}")
-        }).ToList();
+            var duties = await _api.GetDutiesAsync(_currentDate.Year, _currentDate.Month);
+            var students = await _api.GetStudentsAsync();
 
-        ListView.ItemsSource = displayList;
+            var displayList = duties.Select(d => new
+            {
+                d.Date,
+                DisplayNames = students.Where(s => s.Id == d.StudentId1 || s.Id == d.StudentId2)
+                                       .Select(s => s.FullName)
+                                       .Aggregate("", (a, b) => string.IsNullOrEmpty(a) ? b : $"{a}, {b}")
+            }).ToList();
+
+            ListView.ItemsSource = displayList;
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Ошибка", $"Не удалось загрузить данные: {ex.Message}", "ОК");
+        }
 
         LoadingIndicator.IsRunning = false;
         LoadingIndicator.IsVisible = false;
@@ -68,39 +74,38 @@ public partial class DutiesPage : ContentPage
 
     private async void OnAutoAssignClicked(object sender, EventArgs e)
     {
-        string fromStr = await DisplayPromptAsync("Автораспределение", "С какой даты? (дд.мм.гггг)", initialValue: DateTime.Now.ToString("dd.MM.yyyy"));
-        if (string.IsNullOrEmpty(fromStr)) return;
-
-        string toStr = await DisplayPromptAsync("Автораспределение", "По какую дату? (дд.мм.гггг)", initialValue: DateTime.Now.AddDays(7).ToString("dd.MM.yyyy"));
-        if (string.IsNullOrEmpty(toStr)) return;
-
-        string pairStr = await DisplayPromptAsync("Автораспределение", "Сколько человек в паре? (1 или 2)", initialValue: "2");
-        if (!int.TryParse(pairStr, out int pairSize)) pairSize = 2;
-
-        if (DateTime.TryParseExact(fromStr, "dd.MM.yyyy", null, System.Globalization.DateTimeStyles.None, out DateTime fromDate) &&
-            DateTime.TryParseExact(toStr, "dd.MM.yyyy", null, System.Globalization.DateTimeStyles.None, out DateTime toDate))
+        try
         {
+            // Спрашиваем только размер пары
+            string pairStr = await DisplayPromptAsync("Автораспределение", "Сколько человек в паре? (1 или 2)", initialValue: "2");
+            if (string.IsNullOrEmpty(pairStr)) return;
+
+            if (!int.TryParse(pairStr, out int pairSize)) pairSize = 2;
+
             LoadingIndicator.IsRunning = true;
             LoadingIndicator.IsVisible = true;
 
-            var result = await _api.AutoAssignAsync(fromDate, toDate, pairSize, true);
+            var today = DateTime.Today;
+            var result = await _api.AutoAssignAsync(today, today, pairSize, skipWeekends: false);
 
             LoadingIndicator.IsRunning = false;
             LoadingIndicator.IsVisible = false;
 
             if (result != null)
             {
-                await DisplayAlert("Успех", $"Создано дежурств: {result.Count}", "ОК");
+                await DisplayAlert("Успех", $"Дежурные на сегодня назначены! Добавлено: {result.Count}", "ОК");
                 await LoadData();
             }
             else
             {
-                await DisplayAlert("Ошибка", "Не удалось распределить. Возможно, база пуста.", "ОК");
+                await DisplayAlert("Ошибка", "Не удалось распределить. Проверьте, есть ли студенты в списке.", "ОК");
             }
         }
-        else
+        catch (Exception ex)
         {
-            await DisplayAlert("Ошибка", "Неверный формат даты", "ОК");
+            LoadingIndicator.IsRunning = false;
+            LoadingIndicator.IsVisible = false;
+            await DisplayAlert("Ошибка", $"Произошла ошибка: {ex.Message}", "ОК");
         }
     }
 }

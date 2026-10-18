@@ -13,13 +13,29 @@ public partial class StudentsPage : ContentPage
         InitializeComponent();
         _api = api;
         _session = session;
+        UpdateThemeIcon();
     }
 
     protected override async void OnAppearing()
     {
         base.OnAppearing();
         AddPanel.IsVisible = _session.CanEditGroup;
+        UpdateThemeIcon();
         await LoadData();
+    }
+
+    private void UpdateThemeIcon()
+    {
+        ThemeIcon.Text = Application.Current!.UserAppTheme == AppTheme.Dark ? "☀️" : "🌙";
+    }
+
+    private void OnThemeToggle(object sender, EventArgs e)
+    {
+        var cur = Application.Current!.UserAppTheme;
+        var next = cur == AppTheme.Dark ? AppTheme.Light : AppTheme.Dark;
+        Application.Current.UserAppTheme = next;
+        Preferences.Set("theme", next == AppTheme.Dark ? "Dark" : "Light");
+        UpdateThemeIcon();
     }
 
     private async Task LoadData()
@@ -35,7 +51,6 @@ public partial class StudentsPage : ContentPage
 
     private async void OnMenu(object sender, EventArgs e)
     {
-        // Открываем главное меню
         await Navigation.PushAsync(new MainPage(_api, _session));
     }
 

@@ -5,26 +5,22 @@
              BackgroundColor="{AppThemeBinding Light={StaticResource BackgroundDark}, Dark={StaticResource BackgroundDark}}"
              Title="Главная">
 
-    <!-- Кнопки в правом верхнем углу -->
     <ContentPage.ToolbarItems>
-        <ToolbarItem Text="🌓" Clicked="OnThemeToggle" Order="Primary" Priority="0"/>
+        <ToolbarItem x:Name="ThemeIcon" Text="🌙" Clicked="OnThemeToggle" Order="Primary" Priority="0"/>
         <ToolbarItem Text="Выйти" Clicked="OnLogout" Order="Primary" Priority="1"/>
     </ContentPage.ToolbarItems>
 
     <ScrollView>
         <VerticalStackLayout Padding="20" Spacing="15">
-
-            <!-- Приветствие -->
             <Label x:Name="WelcomeLabel" FontSize="24" FontAttributes="Bold" 
                    TextColor="{StaticResource TextLight}" Margin="0,10,0,10"/>
 
-            <!-- Сетка кнопок -->
             <Border StrokeShape="RoundRectangle 15">
-                <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="10" RowSpacing="10">
+                <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="10" RowSpacing="10">
                     <Button Grid.Row="0" Grid.Column="0" Text="👥 Группа" Clicked="OnStudentsClicked" HeightRequest="80" FontSize="18"/>
-                    <Button Grid.Row="0" Grid.Column="1" Text="📅 Дежурства" Clicked="OnDutiesClicked" HeightRequest="80" FontSize="18"/>
-                    <Button Grid.Row="1" Grid.Column="0" Text="⚖️ Баланс" Clicked="OnBalanceClicked" HeightRequest="80" FontSize="18"/>
-                    <Button Grid.Row="1" Grid.Column="1" Text="📜 История" Clicked="OnHistoryClicked" HeightRequest="80" FontSize="18"/>
+                    <Button Grid.Row="0" Grid.Column="1" Text="📅 Дежурства" Clicked="OnBalanceClicked" HeightRequest="80" FontSize="18"/>
+                    <Button Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Text="📜 История" Clicked="OnHistoryClicked" HeightRequest="80" FontSize="18"/>
+                    <Button Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Text="👤 Пользователи" Clicked="OnUsersClicked" HeightRequest="80" FontSize="18" BackgroundColor="#28a745"/>
                 </Grid>
             </Border>
         </VerticalStackLayout>

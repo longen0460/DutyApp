@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="DutyApp.Mobile.Pages.UsersPage"
+             BackgroundColor="{AppThemeBinding Light={StaticResource BackgroundDark}, Dark={StaticResource BackgroundDark}}"
+             Title="Пользователи">
+
+    <Grid RowDefinitions="Auto,*,Auto" Padding="15" RowSpacing="10">
+
+        <Border Grid.Row="0" StrokeShape="RoundRectangle 10" BackgroundColor="#2D2D2D">
+            <VerticalStackLayout Padding="10" Spacing="10">
+                <Entry x:Name="LoginEntry" Placeholder="Логин"/>
+                <Entry x:Name="PasswordEntry" Placeholder="Пароль" IsPassword="True"/>
+                <Picker x:Name="RolePicker" Title="Роль">
+                    <Picker.ItemsSource>
+                        <x:Array Type="{x:Type x:String}">
+                            <x:String>Admin</x:String>
+                            <x:String>Starosta</x:String>
+                            <x:String>Zam</x:String>
+                        </x:Array>
+                    </Picker.ItemsSource>
+                </Picker>
+                <Button Text="Создать пользователя" Clicked="OnCreateClicked"/>
+            </VerticalStackLayout>
+        </Border>
+
+        <CollectionView Grid.Row="1" x:Name="ListView">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Border StrokeShape="RoundRectangle 12" Margin="0,5" Padding="15">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <VerticalStackLayout>
+                                <Label Text="{Binding Login}" FontSize="16" FontAttributes="Bold"
+                                       TextColor="{StaticResource TextLight}"/>
+                                <Label Text="{Binding Role}" FontSize="12" TextColor="{StaticResource TextMuted}"/>
+                            </VerticalStackLayout>
+                            <Button Grid.Column="1" Text="Удалить" BackgroundColor="{StaticResource Danger}"
+                                    TextColor="White" CornerRadius="8" HeightRequest="35" FontSize="12"
+                                    Clicked="OnDeleteClicked" CommandParameter="{Binding Id}"/>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <ActivityIndicator Grid.Row="2" x:Name="LoadingIndicator" IsRunning="False" IsVisible="False" Color="{StaticResource Primary}"/>
+    </Grid>
+</ContentPage>

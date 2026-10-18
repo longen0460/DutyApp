@@ -36,6 +36,7 @@ public class DutiesController : ControllerBase
     {
         entry.Id = 0;
         entry.IsAutoAssigned = false;
+        entry.Date = DateTime.SpecifyKind(entry.Date, DateTimeKind.Utc);
         entry.CreatedAt = DateTime.UtcNow;
         _db.Duties.Add(entry);
         Log("assign_duty", $"{entry.Date:yyyy-MM-dd} -> {entry.StudentId1}, {entry.StudentId2}");
@@ -54,7 +55,7 @@ public class DutiesController : ControllerBase
         return NoContent();
     }
 
-    // Честный рандом с балансом нагрузки
+    // Автоматическое распределение с честным рандомом и балансом нагрузки
     [HttpPost("auto-assign")]
     public async Task<IActionResult> AutoAssign([FromBody] AutoAssignRequest req)
     {
@@ -89,7 +90,7 @@ public class DutiesController : ControllerBase
 
             var entry = new DutyEntry
             {
-                Date = date,
+                Date = DateTime.SpecifyKind(date, DateTimeKind.Utc),
                 StudentId1 = pair[0],
                 StudentId2 = pair.Count > 1 ? pair[1] : null,
                 IsAutoAssigned = true,
@@ -116,6 +117,16 @@ public class DutiesController : ControllerBase
             Count = duties.Count(d => d.StudentId1 == s.Id || d.StudentId2 == s.Id)
         }).OrderByDescending(x => x.Count).ToList();
         return Ok(result);
+    }
+
+    [HttpGet("history/{studentId}")]
+    public async Task<IActionResult> GetStudentHistory(int studentId)
+    {
+        var duties = await _db.Duties
+            .Where(d => d.StudentId1 == studentId || d.StudentId2 == studentId)
+            .OrderByDescending(d => d.Date)
+            .ToListAsync();
+        return Ok(duties);
     }
 }
 

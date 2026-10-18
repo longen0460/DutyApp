@@ -17,7 +17,6 @@ public partial class App : Application
 
         if (session.Load())
         {
-            // Уже вошел ранее — сразу на главную
             MainPage = new NavigationPage(new MainPage(api, session));
         }
         else

@@ -3,14 +3,23 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="DutyApp.Mobile.Pages.BalancePage"
              BackgroundColor="{AppThemeBinding Light={StaticResource BackgroundDark}, Dark={StaticResource BackgroundDark}}"
-             Title="Баланс нагрузки">
-    <Grid RowDefinitions="*,Auto" Padding="15">
-        <CollectionView Grid.Row="0" x:Name="ListView">
+             Title="Дежурства">
+
+    <Grid RowDefinitions="Auto,*,Auto" Padding="15" RowSpacing="10">
+
+        <Button Grid.Row="0" Text="🎲 Выбрать дежурных на сегодня" 
+                Clicked="OnAssignClicked" BackgroundColor="#28a745" HeightRequest="60" FontSize="16"/>
+
+        <CollectionView Grid.Row="1" x:Name="ListView">
             <CollectionView.ItemTemplate>
                 <DataTemplate>
                     <Border StrokeShape="RoundRectangle 12" Margin="0,5" Padding="15">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnStudentTapped"/>
+                        </Border.GestureRecognizers>
                         <Grid ColumnDefinitions="*,Auto">
-                            <Label Text="{Binding FullName}" FontSize="16" VerticalOptions="Center" TextColor="{StaticResource TextLight}"/>
+                            <Label Text="{Binding FullName}" FontSize="16" VerticalOptions="Center" 
+                                   TextColor="{StaticResource TextLight}"/>
                             <Border Grid.Column="1" BackgroundColor="{StaticResource Primary}" StrokeShape="RoundRectangle 15" Padding="12,5">
                                 <Label Text="{Binding Count}" TextColor="White" FontAttributes="Bold"/>
                             </Border>
@@ -20,6 +29,6 @@
             </CollectionView.ItemTemplate>
         </CollectionView>
 
-        <ActivityIndicator Grid.Row="1" x:Name="LoadingIndicator" IsRunning="False" IsVisible="False" Color="{StaticResource Primary}"/>
+        <ActivityIndicator Grid.Row="2" x:Name="LoadingIndicator" IsRunning="False" IsVisible="False" Color="{StaticResource Primary}"/>
     </Grid>
 </ContentPage>
