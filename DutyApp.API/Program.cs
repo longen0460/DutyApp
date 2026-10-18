@@ -7,8 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 var builder = WebApplication.CreateBuilder(args);
 
 // 1. Подключение к базе данных (Supabase)
-var rawConn = postgresql://dutyapp_user:wtV6jo2uABbY5vPOPcJNGmYQTj4W8iuL@dpg-dbaghm49v7es738ef0vg-a/dutyapp_aj4g
-// ВАЖНО: замени ТВОЙ_ПАРОЛЬ на пароль от Supabase!
+var rawConn = "postgresql://dutyapp_user:wtV6jo2uABbY5vPOPcJNGmYQTj4W8iuL@dpg-dbaghm49v7es738ef0vg-a/dutyapp_aj4g";
 
 string conn;
 if (rawConn.StartsWith("postgresql://") || rawConn.StartsWith("postgres://"))
