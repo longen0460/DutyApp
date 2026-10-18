@@ -6,25 +6,9 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Подключение к базе данных (PostgreSQL)
-// Правильно парсим строку от Render в формат Npgsql
-var rawConn = Environment.GetEnvironmentVariable("DATABASE_URL")
-           ?? builder.Configuration.GetConnectionString("Default");
-string conn;
-if (rawConn != null && rawConn.StartsWith("postgres://"))
-{
-    var uri = new Uri(rawConn);
-    var userInfo = uri.UserInfo.Split(':');
+// 1. Подключение к базе данных (Supabase)
+var conn = "postgresql://postgres.ohtjspcqgdjlpsukcpvl:7aY-HaX-CMn-kNh@aws-0-eu-west-1.pooler.supabase.com:5432/postgres";
 
-    // Если порт не указан в URL, используем стандартный 5432
-    int port = uri.Port > 0 ? uri.Port : 5432;
-
-    conn = $"Host={uri.Host};Port={port};Database={uri.AbsolutePath.TrimStart('/')};Username={userInfo[0]};Password={userInfo[1]};SSL Mode=Require;Trust Server Certificate=true";
-}
-else
-{
-    conn = rawConn!;
-}
 builder.Services.AddDbContext<AppDbContext>(o => o.UseNpgsql(conn));
 
 // 2. Добавляем контроллеры и Swagger
